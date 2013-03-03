@@ -11,6 +11,9 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.util.Log;
 
+/*
+ * http://www.silabs.com/Support%20Documents/TechnicalDocs/AN571.pdf
+ */
 public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     
     private static final String TAG = Cp2102SerialDriver.class.getSimpleName();
@@ -18,12 +21,15 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     private static final int DEFAULT_BAUD_RATE = 9600;
     
     private static final int USB_WRITE_TIMEOUT_MILLIS = 5000;
-    
+
     /*
      * Configuration Request Types
      */
+    // bmRequestType 01000001b
     private static final int REQTYPE_HOST_TO_DEVICE = 0x41;
-    
+    // bmRequestType 11000001b
+    private static final int REQTYPE_DEVICE_TO_HOST = 0xC1;
+
     /*
      * Configuration Request Codes
      */
@@ -31,6 +37,8 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     private static final int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
     private static final int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
     private static final int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
+    // GET_MDMSTS 0x08 Get modem status.
+    private static final int SILABSER_GET_MHS_REQUEST_CODE = 0x08;
     private static final int SILABSER_SET_BAUDRATE = 0x1E;
     
     /*
@@ -53,6 +61,22 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     
     private static final int CONTROL_WRITE_DTR = 0x0100;
     private static final int CONTROL_WRITE_RTS = 0x0200;    
+
+    /*
+     * SILABSER_GET_MHS_REQUEST_CODE AN571 Rev. 0.1 p.11 5.10. GET_MDMSTS (0x08)
+     */
+    // bit 0: DTR state (as set by host or by handshaking logic in CP210x)
+    private static final int GET_MCR_DTR = 0x0001;
+    // bit 1: RTS state (as set by host or by handshaking logic in CP210x)
+    private static final int GET_MCR_RTS = 0x0002;
+    // bit 4: CTS state (as set by end device)
+    private static final int GET_MCR_CTS = 0x0010;
+    // bit 5: DSR state (as set by end device)
+    private static final int GET_MCR_DSR = 0x0020;
+    // bit 6: RI state (as set by end device)
+    private static final int GET_MCR_RI = 0x0040;
+    // bit 7: DCD state (as set by end device).
+    private static final int GET_MCR_DCD = 0x0080;
 
     private UsbEndpoint mReadEndpoint;
     private UsbEndpoint mWriteEndpoint; 
