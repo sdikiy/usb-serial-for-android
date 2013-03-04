@@ -269,10 +269,6 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
-    public void setDTR(boolean value) throws IOException {
-    }
-
-    @Override
     public boolean getRI() throws IOException {
         return false;
     }
@@ -283,9 +279,23 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
-    public void setRTS(boolean value) throws IOException {
+    public void setDTR(boolean value) throws IOException {
+        // TODO DTR and RTS values can be set only if the current handshaking
+        // state of the interface allows direct control of the modem control
+        // lines.
+        setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE,
+                (CONTROL_WRITE_DTR | (value ? MCR_DTR : 0)));
     }
-    
+
+    @Override
+    public void setRTS(boolean value) throws IOException {
+        // TODO DTR and RTS values can be set only if the current handshaking
+        // state of the interface allows direct control of the modem control
+        // lines.
+        setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE,
+                (CONTROL_WRITE_RTS | (value ? MCR_RTS : 0)));
+    }
+
     public static Map<Integer, int[]> getSupportedDevices() {
         final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
         supportedDevices.put(Integer.valueOf(UsbId.VENDOR_SILAB),
