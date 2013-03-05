@@ -115,27 +115,43 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
             int baudRate, int dataBits, int stopBits, int parity) throws IOException;
 
     @Override
-    public abstract boolean getCD() throws IOException;
+    public abstract int getModemStatus() throws IOException;
 
     @Override
-    public abstract boolean getCTS() throws IOException;
+    public boolean getCD() throws IOException {
+        // TODO if (((getModemStatus() >>> 8) & MS_DCD_MASK) == 0) return null;
+        return (((getModemStatus() & MS_DCD_MASK) == 0) ? false : true);
+    }
 
     @Override
-    public abstract boolean getDSR() throws IOException;
+    public boolean getCTS() throws IOException {
+        return (((getModemStatus() & MS_CTS_MASK) == 0) ? false : true);
+    }
 
     @Override
-    public abstract boolean getDTR() throws IOException;
+    public boolean getRTS() throws IOException {
+        return (((getModemStatus() & MS_RTS_MASK) == 0) ? false : true);
+    }
 
     @Override
-    public abstract void setDTR(boolean value) throws IOException;
+    public boolean getDSR() throws IOException {
+        return (((getModemStatus() & MS_DSR_MASK) == 0) ? false : true);
+    }
 
     @Override
-    public abstract boolean getRI() throws IOException;
+    public boolean getDTR() throws IOException {
+        return (((getModemStatus() & MS_DTR_MASK) == 0) ? false : true);
+    }
 
     @Override
-    public abstract boolean getRTS() throws IOException;
+    public boolean getRI() throws IOException {
+        return (((getModemStatus() & MS_RI_MASK) == 0) ? false : true);
+    }
 
     @Override
     public abstract void setRTS(boolean value) throws IOException;
+
+    @Override
+    public abstract void setDTR(boolean value) throws IOException;
 
 }

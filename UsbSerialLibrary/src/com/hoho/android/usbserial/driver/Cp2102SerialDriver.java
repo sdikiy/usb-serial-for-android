@@ -249,42 +249,30 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
-    public boolean getCD() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getCTS() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getDSR() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getDTR() throws IOException {
-        return true;
-    }
-
-    @Override
-    public boolean getRI() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getRTS() throws IOException {
-        return true;
-    }
-
-    @Override
-    public void setDTR(boolean value) throws IOException {
-        // TODO DTR and RTS values can be set only if the current handshaking
-        // state of the interface allows direct control of the modem control
-        // lines.
-        setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE,
-                (CONTROL_WRITE_DTR | (value ? MCR_DTR : 0)));
+    public int getModemStatus() throws IOException {
+        byte[] buffer = new byte[1] ;
+        int res;
+        mConnection.controlTransfer(REQTYPE_DEVICE_TO_HOST, SILABSER_GET_MHS_REQUEST_CODE, 0,
+                0, buffer, 1, USB_WRITE_TIMEOUT_MILLIS);
+        /*
+        Log.d(TAG, "GET_MDMSTS (0x08)"
+                + (((buffer[0] & GET_MCR_DCD) == 0) ? " dcd" : " DCD")
+                + (((buffer[0] & GET_MCR_CTS) == 0) ? " cts" : " CTS")
+                + (((buffer[0] & GET_MCR_RTS) == 0) ? " rts" : " RTS")
+                + (((buffer[0] & GET_MCR_DSR) == 0) ? " dsr" : " DSR")
+                + (((buffer[0] & GET_MCR_DTR) == 0) ? " dtr" : " DTR")
+                + (((buffer[0] & GET_MCR_RI) == 0) ? " ri" : " RI")
+                );
+        */
+        res = MS_DCD_MASK | MS_CTS_MASK | MS_RTS_MASK | MS_DSR_MASK | MS_DTR_MASK | MS_RI_MASK;
+        res <<= 8;
+        res = res | (((buffer[0] & GET_MCR_DCD) == 0) ? 0 : MS_DCD_MASK)
+                | (((buffer[0] & GET_MCR_CTS) == 0) ? 0 : MS_CTS_MASK)
+                | (((buffer[0] & GET_MCR_RTS) == 0) ? 0 : MS_RTS_MASK)
+                | (((buffer[0] & GET_MCR_DSR) == 0) ? 0 : MS_DSR_MASK)
+                | (((buffer[0] & GET_MCR_DTR) == 0) ? 0 : MS_DTR_MASK)
+                | (((buffer[0] & GET_MCR_RI) == 0) ? 0 : MS_RI_MASK);
+        return res;
     }
 
     @Override
@@ -296,6 +284,15 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
                 (CONTROL_WRITE_RTS | (value ? MCR_RTS : 0)));
     }
 
+    @Override
+    public void setDTR(boolean value) throws IOException {
+        // TODO DTR and RTS values can be set only if the current handshaking
+        // state of the interface allows direct control of the modem control
+        // lines.
+        setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE,
+                (CONTROL_WRITE_DTR | (value ? MCR_DTR : 0)));
+    }
+
     public static Map<Integer, int[]> getSupportedDevices() {
         final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
         supportedDevices.put(Integer.valueOf(UsbId.VENDOR_SILAB),
@@ -304,6 +301,5 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
                 });
         return supportedDevices;
     }
-
 
 }

@@ -80,6 +80,24 @@ public interface UsbSerialDriver {
     /** 2 stop bits. */
     public static final int STOPBITS_2 = 2;
 
+    /** Modem Status DCD. */
+    public static final int MS_DCD_MASK = 0x01;
+
+    /** Modem Status CTS. */
+    public static final int MS_CTS_MASK = 0x02;
+
+    /** Modem Status RTS. */
+    public static final int MS_RTS_MASK = 0x04;
+
+    /** Modem Status DSR. */
+    public static final int MS_DSR_MASK = 0x08;
+
+    /** Modem Status DTR. */
+    public static final int MS_DTR_MASK = 0x0F;
+
+    /** Modem Status RI. */
+    public static final int MS_RI_MASK = 0x10;
+
     /**
      * Opens and initializes the device as a USB serial device. Upon success,
      * caller must ensure that {@link #close()} is eventually called.
@@ -141,6 +159,16 @@ public interface UsbSerialDriver {
      */
     public void setParameters(
             int baudRate, int dataBits, int stopBits, int parity) throws IOException;
+
+    /**
+     * Gets all modem control signal from the underlying UART.
+     * 
+     * @return 0-5 bits: DCD, CTS, RTS, DSR, DTR, RI <br>
+     *         7-8 bits: Reserved <br>
+     *         9-14 bits: bit mask for signal (1 - get Ok, 0 - can`t get )
+     * @throws IOException if an error occurred during reading
+     */
+    public int getModemStatus() throws IOException;
 
     /**
      * Gets the CD (Carrier Detect) bit from the underlying UART.

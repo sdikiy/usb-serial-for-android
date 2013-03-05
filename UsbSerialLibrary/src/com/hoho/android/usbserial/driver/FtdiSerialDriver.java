@@ -470,6 +470,12 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
+    public int getModemStatus() throws IOException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
     public boolean getCD() throws IOException {
         return false;
     }
