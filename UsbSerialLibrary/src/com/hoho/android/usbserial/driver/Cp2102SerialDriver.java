@@ -272,6 +272,7 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
                 | (((buffer[0] & GET_MCR_DSR) == 0) ? 0 : MS_DSR_MASK)
                 | (((buffer[0] & GET_MCR_DTR) == 0) ? 0 : MS_DTR_MASK)
                 | (((buffer[0] & GET_MCR_RI) == 0) ? 0 : MS_RI_MASK);
+        lastModemStatus = res;
         return res;
     }
 

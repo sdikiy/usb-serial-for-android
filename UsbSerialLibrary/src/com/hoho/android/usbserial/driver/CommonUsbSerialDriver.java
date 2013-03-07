@@ -47,6 +47,9 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
     /** Internal write buffer.  Guarded by {@link #mWriteBufferLock}. */
     protected byte[] mWriteBuffer;
 
+    /** Store last result {@link #getModemStatus()}*/
+    protected int lastModemStatus =0;
+
     public CommonUsbSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
         mDevice = device;
         mConnection = connection;
@@ -146,6 +149,36 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
     @Override
     public boolean getRI() throws IOException {
         return (((getModemStatus() & MS_RI_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastCD() throws IOException {
+        return (((lastModemStatus & MS_DCD_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastCTS() throws IOException {
+        return (((lastModemStatus & MS_CTS_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastRTS() throws IOException {
+        return (((lastModemStatus & MS_RTS_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastDSR() throws IOException {
+        return (((lastModemStatus & MS_DSR_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastDTR() throws IOException {
+        return (((lastModemStatus & MS_DTR_MASK) == 0) ? false : true);
+    }
+
+    @Override
+    public boolean getLastRI() throws IOException {
+        return (((lastModemStatus & MS_RI_MASK) == 0) ? false : true);
     }
 
     @Override

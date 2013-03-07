@@ -187,6 +187,14 @@ public interface UsbSerialDriver {
     public boolean getCTS() throws IOException;
 
     /**
+     * Gets the RTS (Request To Send) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getRTS() throws IOException;
+
+    /**
      * Gets the DSR (Data Set Ready) bit from the underlying UART.
      *
      * @return the current state, or {@code false} if not supported.
@@ -203,6 +211,62 @@ public interface UsbSerialDriver {
     public boolean getDTR() throws IOException;
 
     /**
+     * Gets the RI (Ring Indicator) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getRI() throws IOException;
+    
+    /**
+     * Gets the CD (Carrier Detect) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastCD() throws IOException;
+    
+    /**
+     * Gets the CTS (Clear To Send) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastCTS() throws IOException;
+    
+    /**
+     * Gets the RTS (Request To Send) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastRTS() throws IOException;
+    
+    /**
+     * Gets the DSR (Data Set Ready) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastDSR() throws IOException;
+    
+    /**
+     * Gets the DTR (Data Terminal Ready) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastDTR() throws IOException;
+    
+    /**
+     * Gets the RI (Ring Indicator) bit from the underlying UART.
+     *
+     * @return the current state, or {@code false} if not supported.
+     * @throws IOException if an error occurred during reading
+     */
+    public boolean getLastRI() throws IOException;
+
+    /**
      * Sets the DTR (Data Terminal Ready) bit on the underlying UART, if
      * supported.
      *
@@ -210,22 +274,6 @@ public interface UsbSerialDriver {
      * @throws IOException if an error occurred during writing
      */
     public void setDTR(boolean value) throws IOException;
-
-    /**
-     * Gets the RI (Ring Indicator) bit from the underlying UART.
-     *
-     * @return the current state, or {@code false} if not supported.
-     * @throws IOException if an error occurred during reading
-     */
-    public boolean getRI() throws IOException;
-
-    /**
-     * Gets the RTS (Request To Send) bit from the underlying UART.
-     *
-     * @return the current state, or {@code false} if not supported.
-     * @throws IOException if an error occurred during reading
-     */
-    public boolean getRTS() throws IOException;
 
     /**
      * Sets the RTS (Request To Send) bit on the underlying UART, if
