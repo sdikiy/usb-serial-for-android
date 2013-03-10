@@ -93,10 +93,10 @@ public interface UsbSerialDriver {
     public static final int MS_DSR_MASK = 0x08;
 
     /** Modem Status DTR. */
-    public static final int MS_DTR_MASK = 0x0F;
+    public static final int MS_DTR_MASK = 0x10;
 
     /** Modem Status RI. */
-    public static final int MS_RI_MASK = 0x10;
+    public static final int MS_RI_MASK = 0x20;
 
     /**
      * Opens and initializes the device as a USB serial device. Upon success,
