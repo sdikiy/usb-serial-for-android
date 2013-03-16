@@ -81,6 +81,20 @@ public enum UsbSerialProber {
             }
             return new Cp2102SerialDriver(usbDevice, connection);
         }
+    },
+    
+    PROLIFIC_SERIAL {
+        @Override
+        public UsbSerialDriver getDevice(final UsbManager manager, final UsbDevice usbDevice) {
+            if (!testIfSupported(usbDevice, Pl2303SerialDriver.getSupportedDevices())) {
+                return null;
+            }
+            final UsbDeviceConnection connection = manager.openDevice(usbDevice);
+            if (connection == null) {
+                return null;
+            }
+            return new Pl2303SerialDriver(usbDevice, connection);
+        }
     };
 
     /**
