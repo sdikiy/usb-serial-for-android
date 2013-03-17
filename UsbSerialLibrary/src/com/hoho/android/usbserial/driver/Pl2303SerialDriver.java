@@ -162,9 +162,9 @@ public class Pl2303SerialDriver extends CommonUsbSerialDriver implements Runnabl
     public void close() throws IOException {
         if (mConnection != null) {
             // terminate tMS thread
+            // https://code.google.com/p/android/issues/detail?id=39522
             opened = false;
-
-            // drop DTR/RTS 
+            // up/down DTR/RTS for generate interrupt in tMS thread
             setRTS(true);
             setDTR(true);
             setRTS(false);
