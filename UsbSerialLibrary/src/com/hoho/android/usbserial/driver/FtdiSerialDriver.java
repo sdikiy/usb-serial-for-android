@@ -119,7 +119,8 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     /**
      * Set the modem control register.
      */
-    private static final int SIO_MODEM_CTRL_REQUEST = 1;
+    private static final int SIO_MODEM_CTRL = 1;
+    private static final int SIO_SET_MODEM_CTRL_REQUEST = SIO_MODEM_CTRL;
 
     /**
      * Set flow control register.
@@ -144,10 +145,18 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     public static final int FTDI_DEVICE_IN_REQTYPE =
             UsbConstants.USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN;
 
+    private static final int SIO_READ_PINS_REQUEST = 0x0C;
+
     /**
      * Length of the modem status header, transmitted with every read.
      */
     private static final int MODEM_STATUS_HEADER_LENGTH = 2;
+
+    private static final int SIO_SET_DTR_MASK = 0x0100;
+    private static final int SIO_SET_RTS_MASK = 0x0200;
+
+    private static final int SIO_SET_DTR = 0x01;
+    private static final int SIO_SET_RTS = 0x02;
 
     private final String TAG = FtdiSerialDriver.class.getSimpleName();
 
@@ -222,7 +231,10 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
+        setRTS(false);
+        setDTR(false);
+        reset();
         mConnection.close();
     }
 
@@ -471,46 +483,45 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
     @Override
     public int getModemStatus() throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public boolean getCD() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getCTS() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getDSR() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getDTR() throws IOException {
-        return false;
+        byte[] buffer = new byte[2];
+        int res;
+        int result = mConnection.controlTransfer(FTDI_DEVICE_IN_REQTYPE, SIO_READ_PINS_REQUEST,
+                0, 0 /* index */, buffer, 2, USB_WRITE_TIMEOUT_MILLIS);
+        
+        Log.d(TAG, "GET_MDMSTS (0x08)"
+                + (((buffer[0] & 0x80) == 0) ? " dcd" : " DCD")
+                + (((buffer[0] & 0x10) == 0) ? " cts" : " CTS")
+                //+ (((buffer[0] & GET_MCR_RTS) == 0) ? " rts" : " RTS")
+                + (((buffer[0] & 0x20) == 0) ? " dsr" : " DSR")
+                //+ (((buffer[0] & GET_MCR_DTR) == 0) ? " dtr" : " DTR")
+                + (((buffer[0] & 0x40) == 0) ? " ri" : " RI")
+                );
+        
+        res = MS_DCD_MASK | MS_CTS_MASK | (MS_RTS_MASK & 0x00) | MS_DSR_MASK
+                | (MS_DTR_MASK & 0x00) | MS_RI_MASK;
+        res <<= 8;
+        res = res | (((buffer[0] & 0x80) == 0) ? 0 : MS_DCD_MASK)
+                | (((buffer[0] & 0x10) == 0) ? 0 : MS_CTS_MASK)
+                //| (((buffer[0] & GET_MCR_RTS) == 0) ? 0 : MS_RTS_MASK)
+                | (((buffer[0] & 0x20) == 0) ? 0 : MS_DSR_MASK)
+                //| (((buffer[0] & GET_MCR_DTR) == 0) ? 0 : MS_DTR_MASK)
+                | (((buffer[0] & 0x40) == 0) ? 0 : MS_RI_MASK);
+        lastModemStatus = res;
+        return res;
     }
 
     @Override
     public void setDTR(boolean value) throws IOException {
-    }
-
-    @Override
-    public boolean getRI() throws IOException {
-        return false;
-    }
-
-    @Override
-    public boolean getRTS() throws IOException {
-        return false;
+        mConnection.controlTransfer(FTDI_DEVICE_OUT_REQTYPE, SIO_SET_MODEM_CTRL_REQUEST,
+                (SIO_SET_DTR_MASK | (value ? SIO_SET_DTR : 0)),
+                0 /* index */, null, 0, USB_WRITE_TIMEOUT_MILLIS);
     }
 
     @Override
     public void setRTS(boolean value) throws IOException {
+        mConnection.controlTransfer(FTDI_DEVICE_OUT_REQTYPE, SIO_SET_MODEM_CTRL_REQUEST,
+                (SIO_SET_RTS_MASK | (value ? SIO_SET_RTS : 0)),
+                0 /* index */, null, 0, USB_WRITE_TIMEOUT_MILLIS);
     }
 
     public static Map<Integer, int[]> getSupportedDevices() {
