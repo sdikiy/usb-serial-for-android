@@ -487,21 +487,22 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
         int res;
         int result = mConnection.controlTransfer(FTDI_DEVICE_IN_REQTYPE, SIO_READ_PINS_REQUEST,
                 0, 0 /* index */, buffer, 2, USB_WRITE_TIMEOUT_MILLIS);
-        
+/*        
         Log.d(TAG, "GET_MDMSTS (0x08)"
                 + (((buffer[0] & 0x80) == 0) ? " dcd" : " DCD")
-                + (((buffer[0] & 0x10) == 0) ? " cts" : " CTS")
+                + (((buffer[0] & 0x08) == 0) ? " cts" : " CTS")
                 //+ (((buffer[0] & GET_MCR_RTS) == 0) ? " rts" : " RTS")
                 + (((buffer[0] & 0x20) == 0) ? " dsr" : " DSR")
                 //+ (((buffer[0] & GET_MCR_DTR) == 0) ? " dtr" : " DTR")
                 + (((buffer[0] & 0x40) == 0) ? " ri" : " RI")
+                + " b[0]=" + (buffer[0] & 0x00FF) + " b[1]=" + (buffer[1] & 0x00FF)
                 );
-        
+*/        
         res = MS_DCD_MASK | MS_CTS_MASK | (MS_RTS_MASK & 0x00) | MS_DSR_MASK
                 | (MS_DTR_MASK & 0x00) | MS_RI_MASK;
         res <<= 8;
         res = res | (((buffer[0] & 0x80) == 0) ? 0 : MS_DCD_MASK)
-                | (((buffer[0] & 0x10) == 0) ? 0 : MS_CTS_MASK)
+                | (((buffer[0] & 0x08) == 0) ? MS_CTS_MASK : 0 )
                 //| (((buffer[0] & GET_MCR_RTS) == 0) ? 0 : MS_RTS_MASK)
                 | (((buffer[0] & 0x20) == 0) ? 0 : MS_DSR_MASK)
                 //| (((buffer[0] & GET_MCR_DTR) == 0) ? 0 : MS_DTR_MASK)
