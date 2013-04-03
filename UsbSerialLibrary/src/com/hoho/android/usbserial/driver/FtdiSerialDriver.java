@@ -145,6 +145,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     public static final int FTDI_DEVICE_IN_REQTYPE =
             UsbConstants.USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN;
 
+    private static final int SIO_POLL_MODEM_STATUS_REQUEST = 0x05;
     private static final int SIO_READ_PINS_REQUEST = 0x0C;
 
     /**
@@ -482,31 +483,50 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     }
 
     @Override
+    /*
+     * SIO_READ_PINS_REQUEST:
+     * (FT232RL pin) XXX - DY - MASK
+     * (1) TXD - D0 - 0x01
+     * (5) RXD - D1 - 0x02
+     * (3) RTS - D2 - 0x04
+     * (11) CTS - D3 - 0x08
+     * (2) DTR - D4 - 0x10
+     * (9) DSR - D5 - 0x20
+     * (10) DCD - D6 - 0x40
+     * (7) RI - D7 - 0x80
+     * 
+     * TODO SIO_POLL_MODEM_STATUS_REQUEST:
+     * Bit 4:      CTS state
+     * Bit 5:      DSR state
+     * Bit 6:      RI state
+     * Bit 7:      DCD state
+     * 
+     */
     public int getModemStatus() throws IOException {
         byte[] buffer = new byte[2];
         int res;
         int result = mConnection.controlTransfer(FTDI_DEVICE_IN_REQTYPE, SIO_READ_PINS_REQUEST,
                 0, 0 /* index */, buffer, 2, USB_WRITE_TIMEOUT_MILLIS);
-/*        
+/*
         Log.d(TAG, "GET_MDMSTS (0x08)"
-                + (((buffer[0] & 0x80) == 0) ? " dcd" : " DCD")
+                + (((buffer[0] & 0x40) == 0) ? " dcd" : " DCD")
                 + (((buffer[0] & 0x08) == 0) ? " cts" : " CTS")
-                //+ (((buffer[0] & GET_MCR_RTS) == 0) ? " rts" : " RTS")
+                + (((buffer[0] & 0x04) == 0) ? " rts" : " RTS")
                 + (((buffer[0] & 0x20) == 0) ? " dsr" : " DSR")
-                //+ (((buffer[0] & GET_MCR_DTR) == 0) ? " dtr" : " DTR")
-                + (((buffer[0] & 0x40) == 0) ? " ri" : " RI")
+                + (((buffer[0] & 0x10) == 0) ? " dtr" : " DTR")
+                + (((buffer[0] & 0x80) == 0) ? " ri" : " RI")
                 + " b[0]=" + (buffer[0] & 0x00FF) + " b[1]=" + (buffer[1] & 0x00FF)
                 );
-*/        
-        res = MS_DCD_MASK | MS_CTS_MASK | (MS_RTS_MASK & 0x00) | MS_DSR_MASK
-                | (MS_DTR_MASK & 0x00) | MS_RI_MASK;
+*/
+        res = MS_DCD_MASK | MS_CTS_MASK | MS_RTS_MASK | MS_DSR_MASK
+                | MS_DTR_MASK | MS_RI_MASK;
         res <<= 8;
-        res = res | (((buffer[0] & 0x80) == 0) ? 0 : MS_DCD_MASK)
+        res = res | (((buffer[0] & 0x40) == 0) ? MS_DCD_MASK : 0 )
                 | (((buffer[0] & 0x08) == 0) ? MS_CTS_MASK : 0 )
-                //| (((buffer[0] & GET_MCR_RTS) == 0) ? 0 : MS_RTS_MASK)
-                | (((buffer[0] & 0x20) == 0) ? 0 : MS_DSR_MASK)
-                //| (((buffer[0] & GET_MCR_DTR) == 0) ? 0 : MS_DTR_MASK)
-                | (((buffer[0] & 0x40) == 0) ? 0 : MS_RI_MASK);
+                | (((buffer[0] & 0x04) == 0) ? MS_RTS_MASK : 0 )
+                | (((buffer[0] & 0x20) == 0) ? MS_DSR_MASK : 0 )
+                | (((buffer[0] & 0x10) == 0) ? MS_DTR_MASK : 0 )
+                | (((buffer[0] & 0x80) == 0) ? MS_RI_MASK : 0 );
         lastModemStatus = res;
         return res;
     }
