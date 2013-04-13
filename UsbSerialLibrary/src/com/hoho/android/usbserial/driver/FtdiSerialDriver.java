@@ -24,6 +24,7 @@ import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbRequest;
 import android.util.Log;
 
@@ -179,6 +180,9 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     private int mParity;
     private int mStopBits;
 
+    private UsbEndpoint mReadEndpoint;
+    private UsbEndpoint mWriteEndpoint; 
+
     /**
      * Due to http://b.android.com/28023 , we cannot use UsbRequest async reads
      * since it gives no indication of number of bytes read. Set this to
@@ -221,6 +225,19 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
                     Log.d(TAG, "claimInterface " + i + " FAIL");
                 }
             }
+
+            UsbInterface dataIface = mDevice.getInterface(mDevice.getInterfaceCount() - 1);
+            for (int i = 0; i < dataIface.getEndpointCount(); i++) {
+                UsbEndpoint ep = dataIface.getEndpoint(i);
+                if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+                    if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
+                        mReadEndpoint = ep;
+                    } else {
+                        mWriteEndpoint = ep;
+                    }
+                }
+            }
+
             reset();
             setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
             opened = true;
@@ -241,7 +258,6 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
     @Override
     public int read(byte[] dest, int timeoutMillis) throws IOException {
-        final UsbEndpoint endpoint = mDevice.getInterface(0).getEndpoint(0);
 
         if (ENABLE_ASYNC_READS) {
             final int readAmt;
@@ -251,7 +267,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
             }
 
             final UsbRequest request = new UsbRequest();
-            request.initialize(mConnection, endpoint);
+            request.initialize(mConnection, mReadEndpoint);
 
             final ByteBuffer buf = ByteBuffer.wrap(dest);
             if (!request.queue(buf, readAmt)) {
@@ -275,7 +291,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
             synchronized (mReadBufferLock) {
                 final int readAmt = Math.min(dest.length, mReadBuffer.length);
-                totalBytesRead = mConnection.bulkTransfer(endpoint, mReadBuffer,
+                totalBytesRead = mConnection.bulkTransfer(mReadEndpoint, mReadBuffer,
                         readAmt, timeoutMillis);
             }
 
@@ -293,7 +309,6 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
     @Override
     public int write(byte[] src, int timeoutMillis) throws IOException {
-        final UsbEndpoint endpoint = mDevice.getInterface(0).getEndpoint(1);
         int offset = 0;
 
         while (offset < src.length) {
@@ -312,7 +327,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
                     writeBuffer = mWriteBuffer;
                 }
 
-                amtWritten = mConnection.bulkTransfer(endpoint, writeBuffer, writeLength,
+                amtWritten = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
                         timeoutMillis);
             }
 
