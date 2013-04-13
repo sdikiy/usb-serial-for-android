@@ -207,17 +207,6 @@ public class Pl2303SerialDriver extends CommonUsbSerialDriver implements Runnabl
     /*
      * (non-Javadoc)
      * @see
-     * com.hoho.android.usbserial.driver.CommonUsbSerialDriver#setBaudRate(int)
-     */
-    @Override
-    public int setBaudRate(int baudRate) throws IOException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see
      * com.hoho.android.usbserial.driver.CommonUsbSerialDriver#setParameters
      * (int, int, int, int)
      */
