@@ -90,11 +90,6 @@ import java.util.Map;
  */
 public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
-    private static final int DEFAULT_BAUD_RATE = 115200;
-    private static final int DEFAULT_DATA_BITS = DATABITS_8;
-    private static final int DEFAULT_PARITY = PARITY_NONE;
-    private static final int DEFAULT_STOP_BITS = STOPBITS_1;
-
     public static final int USB_TYPE_STANDARD = 0x00 << 5;
     public static final int USB_TYPE_CLASS = 0x00 << 5;
     public static final int USB_TYPE_VENDOR = 0x00 << 5;
@@ -175,11 +170,6 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
 
     private int mMaxPacketSize = 64; // TODO(mikey): detect
 
-    private int mBaudRate;
-    private int mDataBits;
-    private int mParity;
-    private int mStopBits;
-
     private UsbEndpoint mReadEndpoint;
     private UsbEndpoint mWriteEndpoint; 
 
@@ -222,7 +212,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
                 if (mConnection.claimInterface(mDevice.getInterface(i), true)) {
                     Log.d(TAG, "claimInterface " + i + " SUCCESS");
                 } else {
-                    Log.d(TAG, "claimInterface " + i + " FAIL");
+                    throw new IOException("Error claiming interface " + i);
                 }
             }
 
@@ -239,7 +229,6 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
             }
 
             reset();
-            setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
             opened = true;
         } finally {
             if (!opened) {
@@ -342,9 +331,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
         return offset;
     }
 
-    @Override
-    @Deprecated
-    public int setBaudRate(int baudRate) throws IOException {
+    private int setBaudRate(int baudRate) throws IOException {
         long[] vals = convertBaudrate(baudRate);
         long actualBaudrate = vals[0];
         long index = vals[1];
@@ -361,7 +348,7 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
     @Override
     public void setParameters(int baudRate, int dataBits, int stopBits, int parity)
             throws IOException {
-        mBaudRate = setBaudRate(baudRate);
+        setBaudRate(baudRate);
 
         int config = dataBits;
 
@@ -405,10 +392,6 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
         if (result != 0) {
             throw new IOException("Setting parameters failed: result=" + result);
         }
-
-        mParity = parity;
-        mStopBits = stopBits;
-        mDataBits = dataBits;
     }
 
     private long[] convertBaudrate(int baudrate) {
